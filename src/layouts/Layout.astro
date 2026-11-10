@@ -51,6 +51,7 @@ const nav = [
     <slot name="head" />
   </head>
   <body>
+    <Fragment set:html={"<!--email_off-->"} />
     <a class="skip" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="wrap">
@@ -172,5 +173,6 @@ const nav = [
       }
       document.addEventListener('astro:page-load', setup);
     </script>
+    <Fragment set:html={"<!--/email_off-->"} />
   </body>
 </html>
