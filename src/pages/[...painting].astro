@@ -1,0 +1,114 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import PaintingCard from '../components/PaintingCard.astro';
+import { paintings, imageFor, details, type Painting } from '../data/paintings';
+import { collections, site, enquiryLink } from '../data/site';
+
+export function getStaticPaths() {
+  return paintings.map((p) => ({ params: { painting: p.slug }, props: { p } }));
+}
+const { p } = Astro.props as { p: Painting };
+const c = collections[p.collection];
+const img = imageFor(p.slug);
+const full = await getImage({ src: img, width: Math.min(img.width, 2400), format: 'webp', quality: 86 });
+const og = await getImage({ src: img, width: Math.min(img.width, 1200), format: 'jpg' });
+
+const siblings = paintings.filter((x) => x.collection === p.collection);
+const at = siblings.findIndex((x) => x.slug === p.slug);
+const prev = siblings[(at - 1 + siblings.length) % siblings.length];
+const next = siblings[(at + 1) % siblings.length];
+const more = [1, 2, 3].map((n) => siblings[(at + 1 + n) % siblings.length]).filter((x) => x.slug !== p.slug);
+
+const meta = details(p);
+const description = [`${p.title}, a painting by ${site.artist}.`, meta, p.note].filter(Boolean).join(' ');
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'VisualArtwork',
+  name: p.title,
+  creator: { '@type': 'Person', name: site.artist },
+  image: new URL(og.src, Astro.site).href,
+  url: new URL(`/${p.slug}/`, Astro.site).href,
+  ...(p.medium && { artMedium: p.medium }),
+  ...(p.year && { dateCreated: String(p.year) }),
+  ...(p.size && { size: p.size }),
+};
+---
+<Layout title={p.title} description={description} image={og.src} current={p.collection}>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <nav class="wrap crumbs" aria-label="Breadcrumb">
+    <a href="/">Paintings</a>
+    <span aria-hidden="true">/</span>
+    <a href={`/${c.slug}/`}>{c.name}</a>
+    <span aria-hidden="true">/</span>
+    <span aria-current="page">{p.title}</span>
+  </nav>
+
+  <article class="wrap work">
+    <div class="work-art">
+      <div class="work-art-inner">
+        <button class="zoom" type="button" data-zoom aria-label={`Enlarge ${p.title}`}>
+          <Image
+            src={img}
+            alt={p.alt}
+            widths={[640, 960, 1400]}
+            sizes="(max-width: 900px) 86vw, 640px"
+            loading="eager"
+            fetchpriority="high"
+            transition:name={`art-${p.slug}`}
+          />
+        </button>
+        <p class="zoom-hint">Select the painting to enlarge</p>
+      </div>
+    </div>
+
+    <div class="work-info">
+      <div>
+        <p class="eyebrow">{p.series ?? c.name}</p>
+        <h1>{p.title}</h1>
+      </div>
+
+      {(p.medium || p.size || p.year || p.availability) && (
+        <dl class="facts">
+          {p.medium && (<><dt>Medium</dt><dd>{p.medium}</dd></>)}
+          {p.size && (<><dt>Size</dt><dd>{p.size}</dd></>)}
+          {p.year && (<><dt>Year</dt><dd>{p.year}</dd></>)}
+          {p.availability && (<><dt>Availability</dt><dd>{p.availability}</dd></>)}
+        </dl>
+      )}
+
+      {p.note && <p class="body">{p.note}</p>}
+
+      <div class="actions">
+        <a class="btn btn-solid" href={enquiryLink(`Enquiry: ${p.title}`)}>Enquire about this painting</a>
+        <a class="btn" href={enquiryLink(`Commission enquiry (similar to ${p.title})`)}>Commission something similar</a>
+      </div>
+      <p class="muted" style="font-size:15px">Enquiries go straight to Ross by email.</p>
+    </div>
+  </article>
+
+  <div class="wrap">
+    <nav class="pager caps" aria-label="Previous and next painting">
+      <a class="link-arrow" href={`/${prev.slug}/`}>←&nbsp; {prev.title}</a>
+      <a class="link-arrow" href={`/${next.slug}/`}>{next.title} &nbsp;<span>→</span></a>
+    </nav>
+  </div>
+
+  <section class="wrap more">
+    <div class="section-head">
+      <h2 class="h-section">More from {c.name}</h2>
+      <a class="caps link-arrow" href={`/${c.slug}/`}>View all {siblings.length} &nbsp;<span>→</span></a>
+    </div>
+    <div class="grid">
+      {more.map((m, i) => <PaintingCard painting={m} index={i} />)}
+    </div>
+  </section>
+
+  <dialog class="lightbox" aria-label={`${p.title}, enlarged`}>
+    <button class="lightbox-close" type="button" aria-label="Close">×</button>
+    <div class="lightbox-stage">
+      <img src={full.src} alt={p.alt} loading="lazy" decoding="async" />
+    </div>
+  </dialog>
+</Layout>

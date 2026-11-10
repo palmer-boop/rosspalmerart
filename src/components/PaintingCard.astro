@@ -1,0 +1,29 @@
+---
+import { Image } from 'astro:assets';
+import { imageFor, details, type Painting } from '../data/paintings';
+
+interface Props { painting: Painting; index?: number; }
+const { painting: p, index = 0 } = Astro.props;
+const img = imageFor(p.slug);
+const meta = details(p);
+// Fit the whole painting inside a square mount, whatever its shape
+const ratio = img.width / img.height;
+const fit = Math.round(82 * Math.min(1, ratio) * 10) / 10;
+---
+<a class="card" href={`/${p.slug}/`} data-reveal style={`--d:${(index % 3) * 90}ms`}>
+  <span class="mount">
+    <Image
+      src={img}
+      alt={p.alt}
+      widths={[360, 560, 800]}
+      sizes="(max-width: 700px) 80vw, 320px"
+      loading="lazy"
+      style={`width:${fit}%`}
+      transition:name={`art-${p.slug}`}
+    />
+  </span>
+  <span>
+    <span class="card-title">{p.title}</span>
+    {meta && <span class="card-meta">{meta}</span>}
+  </span>
+</a>

@@ -1,0 +1,110 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import PaintingCard from '../components/PaintingCard.astro';
+import { paintings, imageFor } from '../data/paintings';
+import { collections, enquiryLink, type CollectionKey } from '../data/site';
+
+const hero = paintings.find((p) => p.slug === 'ladies-to-market')!;
+const heroImg = imageFor(hero.slug);
+const og = await getImage({ src: heroImg, width: 1200, format: 'jpg' });
+const selected = paintings.filter((p) => p.featured && p.slug !== hero.slug).slice(0, 6);
+const keys = Object.keys(collections) as CollectionKey[];
+const count = (k: CollectionKey) => paintings.filter((p) => p.collection === k).length;
+---
+<Layout image={og.src}>
+  <section class="wrap hero">
+    <div class="hero-text">
+      <p class="eyebrow">Paintings of Ireland and Zimbabwe</p>
+      <h1>Memories of two homes, recorded in paint.</h1>
+      <p class="body">
+        My journey through art has been to record memories from a life lived in Zimbabwe and Ireland, mostly in
+        acrylics on canvas, with a few watercolours.
+      </p>
+      <a class="btn btn-solid" href="#works">View the paintings</a>
+    </div>
+    <figure class="hero-art">
+      <a href={`/${hero.slug}/`}>
+        <Image
+          src={heroImg}
+          alt={hero.alt}
+          widths={[640, 960, 1400]}
+          sizes="(max-width: 900px) 92vw, 700px"
+          loading="eager"
+          fetchpriority="high"
+          transition:name={`art-${hero.slug}`}
+        />
+      </a>
+      <figcaption><em>{hero.title}</em> &nbsp;·&nbsp; {collections[hero.collection].name}</figcaption>
+    </figure>
+  </section>
+
+  <section class="wrap section">
+    <div class="section-head" data-reveal>
+      <h2 class="h-section">Two collections</h2>
+      <p class="muted" style="font-size:15px">{paintings.length} paintings and counting</p>
+    </div>
+    <div class="tiles">
+      {keys.map((k, i) => (
+        <a class="tile" href={`/${collections[k].slug}/`} data-reveal style={`--d:${i * 120}ms`}>
+          <span class="tile-img">
+            <Image
+              src={imageFor(collections[k].cover)}
+              alt=""
+              widths={[640, 960, 1280]}
+              sizes="(max-width: 760px) 92vw, 600px"
+              loading="lazy"
+            />
+          </span>
+          <span class="tile-row">
+            <span class="tile-name">{collections[k].name}</span>
+            <span class="caps muted">{count(k)} works &nbsp;→</span>
+          </span>
+          <span class="muted" style="font-size:16px">{collections[k].blurb}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap section" id="works" style="scroll-margin-top:90px">
+    <div class="section-head" data-reveal>
+      <h2 class="h-section">Selected works</h2>
+    </div>
+    <div class="grid">
+      {selected.map((p, i) => <PaintingCard painting={p} index={i} />)}
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <div class="band-quote" data-reveal>
+        <p class="eyebrow">My story</p>
+        <blockquote>
+          “The paintings are a series of memories of the journey through life, both in Zimbabwe and Ireland.”
+        </blockquote>
+      </div>
+      <div class="band-text" data-reveal style="--d:120ms">
+        <p class="body">
+          I started painting in 2017 when faced with retirement from the planning and development sector. Having
+          been brought up in Zimbabwe, I paint its people, buildings, landscapes and wildlife.
+        </p>
+        <p class="body">
+          Since moving to Ireland in 2000, my art has been influenced by its landscapes, people and heritage, and
+          I have tried to record my home town of Glanmire in Cork.
+        </p>
+        <a class="caps link-arrow" href="/about-me/">Read my story &nbsp;<span>→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap commission" data-reveal>
+    <div>
+      <h2 class="h-section">Commission a painting</h2>
+      <p class="body">
+        I have been asked to prepare a number of private paintings for clients, reflecting their own requests. If
+        you have a home, a view or a moment you would like painted, get in touch.
+      </p>
+    </div>
+    <a class="btn" href={enquiryLink('Commission enquiry')}>Enquire about a commission</a>
+  </section>
+</Layout>

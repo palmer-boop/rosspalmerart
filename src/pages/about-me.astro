@@ -1,0 +1,53 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import { paintings, imageFor } from '../data/paintings';
+import { collections, enquiryLink } from '../data/site';
+const art = paintings.find((p) => p.slug === 'cobh-cathedral-in-cork-county')!;
+---
+<Layout title="My Story" description="Ross Palmer started painting in 2017, recording memories of a life lived in Zimbabwe and Ireland." current="about">
+  <div class="wrap">
+    <header class="intro">
+      <p class="eyebrow">My story</p>
+      <h1>A journey through life, in paint.</h1>
+    </header>
+    <div class="split">
+      <div class="prose">
+        <p class="lead">
+          I started painting in 2017 when faced with retirement from employment in the planning and development
+          sector.
+        </p>
+        <p>
+          My journey through art so far has been to record memories from experiences in Zimbabwe and Ireland.
+          Having been brought up in Zimbabwe, my paintings specialise in people, buildings and environments:
+          landscape, flora and fauna. I have huge respect for the natural environment, its people and wild
+          animals.
+        </p>
+        <p>
+          Since moving to Ireland in 2000, my art has been influenced by the stunning landscapes, people and
+          heritage, both built and natural. I have tried to record my journey in my home town, Glanmire, which is
+          located in Cork.
+        </p>
+        <p>
+          The paintings, mostly in acrylics and watercolours, are a series of memories of the journey through
+          life both in Zimbabwe and Ireland.
+        </p>
+        <p>
+          I have kindly been asked to prepare a number of private paintings for clients reflecting their specific
+          requests.
+        </p>
+        <p style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px">
+          <a class="btn btn-solid" href={`/${collections.irish.slug}/`}>Irish Art</a>
+          <a class="btn btn-solid" href={`/${collections.african.slug}/`}>African Art</a>
+          <a class="btn" href={enquiryLink('Commission enquiry')}>Commission a painting</a>
+        </p>
+      </div>
+      <figure data-reveal>
+        <a href={`/${art.slug}/`}>
+          <Image src={imageFor(art.slug)} alt={art.alt} widths={[480, 800, 1100]} sizes="(max-width: 800px) 92vw, 480px" />
+        </a>
+        <figcaption>{art.title}</figcaption>
+      </figure>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,126 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '@fontsource/cormorant-garamond/latin-400.css';
+import '@fontsource/cormorant-garamond/latin-500.css';
+import '@fontsource/cormorant-garamond/latin-400-italic.css';
+import '@fontsource/jost/latin-400.css';
+import '@fontsource/jost/latin-500.css';
+import '../styles.css';
+import { site, collections } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  current?: string;
+}
+const { title, description = site.description, image, current = '' } = Astro.props;
+const pageTitle = title ? `${title} | ${site.name}` : `${site.name} | Paintings of Ireland and Zimbabwe`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = image ? new URL(image, Astro.site).href : undefined;
+const nav = [
+  { href: `/${collections.irish.slug}/`, label: collections.irish.name, key: 'irish' },
+  { href: `/${collections.african.slug}/`, label: collections.african.name, key: 'african' },
+  { href: '/about-me/', label: 'My Story', key: 'about' },
+  { href: '/contact/', label: 'Contact', key: 'contact' },
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title ?? site.name} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <ClientRouter />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="wordmark" href="/">{site.artist}</a>
+        <nav class="site-nav" aria-label="Main">
+          {nav.map((n) => (
+            <a href={n.href} aria-current={current === n.key ? 'page' : undefined}>{n.label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <a class="wordmark" href="/">{site.artist}</a>
+        <span>{site.location}</span>
+        <span>© {new Date().getFullYear()} {site.name}</span>
+      </div>
+    </footer>
+
+    <script>
+      function setup() {
+        document.documentElement.classList.add('js');
+
+        // Fade elements in as they scroll into view
+        const items = document.querySelectorAll<HTMLElement>('[data-reveal]:not(.is-in)');
+        if (!('IntersectionObserver' in window)) {
+          items.forEach((el) => el.classList.add('is-in'));
+        } else {
+          const io = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((e) => {
+                if (e.isIntersecting) {
+                  e.target.classList.add('is-in');
+                  io.unobserve(e.target);
+                }
+              });
+            },
+            { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+          );
+          items.forEach((el) => io.observe(el));
+        }
+
+        // Click-to-zoom view on painting pages
+        const dialog = document.querySelector<HTMLDialogElement>('dialog.lightbox');
+        const opener = document.querySelector<HTMLElement>('[data-zoom]');
+        if (dialog && opener && !dialog.dataset.ready) {
+          dialog.dataset.ready = '1';
+          const stage = dialog.querySelector<HTMLElement>('.lightbox-stage')!;
+          const close = () => {
+            dialog.classList.remove('is-zoomed');
+            dialog.close();
+          };
+          opener.addEventListener('click', () => dialog.showModal());
+          dialog.querySelector('.lightbox-close')!.addEventListener('click', close);
+          dialog.addEventListener('close', () => dialog.classList.remove('is-zoomed'));
+          stage.addEventListener('click', (ev) => {
+            const zoomed = dialog.classList.toggle('is-zoomed');
+            if (zoomed) {
+              const fx = ev.clientX / window.innerWidth;
+              const fy = ev.clientY / window.innerHeight;
+              requestAnimationFrame(() => {
+                dialog.scrollLeft = (dialog.scrollWidth - dialog.clientWidth) * fx;
+                dialog.scrollTop = (dialog.scrollHeight - dialog.clientHeight) * fy;
+              });
+            }
+          });
+        }
+      }
+      document.addEventListener('astro:page-load', setup);
+    </script>
+  </body>
+</html>
