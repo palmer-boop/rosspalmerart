@@ -2,7 +2,8 @@
 import { Image, getImage } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import PaintingCard from '../components/PaintingCard.astro';
-import { paintings, imageFor, details, type Painting } from '../data/paintings';
+import Frame from '../components/Frame.astro';
+import { paintings, imageFor, details, frameFor, type Painting } from '../data/paintings';
 import { collections, site, enquiryLink } from '../data/site';
 
 export function getStaticPaths() {
@@ -31,6 +32,9 @@ const realSize =
     : null;
 // The room view shows a 2.4 m wide, 1.7 m high stretch of wall above a 1.2 m sideboard
 const ROOM_W = 2400, ROOM_H = 1700, HANG = 960;
+// In the room view the frame is drawn to scale too: 30 mm moulding and a 60 mm mount
+const MOULD = 30, MOUNT = 60;
+const outerW = realSize ? realSize.w + 2 * (MOULD + MOUNT) : 0;
 
 const meta = details(p);
 const description = [`${p.title}, a painting by ${site.artist}.`, meta, p.note].filter(Boolean).join(' ');
@@ -57,18 +61,20 @@ const jsonLd = {
     <span aria-current="page">{p.title}</span>
   </nav>
 
-  <section class="wall" aria-label="The painting">
+  <section class="wall lit-wall" aria-label="The painting">
     <div class="wall-inner">
       <div class="view" data-pane="wall">
         <button class="zoom" type="button" data-zoom aria-label={`Enlarge ${p.title}`}>
-          <Image
+          <Frame
             src={img}
             alt={p.alt}
-            widths={[640, 960, 1400, 2000].filter((w) => w <= img.width).concat(img.width < 640 ? [img.width] : [])}
-            sizes="(max-width: 900px) 90vw, 900px"
+            frame={frameFor(p)}
+            widths={[640, 960, 1400, 2000]}
+            sizes="(max-width: 900px) 90vw, 760px"
             loading="eager"
-            fetchpriority="high"
-            transition:name={`art-${p.slug}`}
+            priority
+            maxHeight="min(72vh, 780px)"
+            transitionName={`art-${p.slug}`}
           />
         </button>
       </div>
@@ -77,12 +83,16 @@ const jsonLd = {
         <div class="view" data-pane="room" hidden>
           <div class="room" role="img" aria-label={`${p.title} shown to scale, ${realSize.w} by ${realSize.h} mm, hanging above a 1.2 metre sideboard`}>
             <span class="room-floor" aria-hidden="true"></span>
-            <img
+            <Frame
               class="room-art"
-              src={full.src}
+              src={img}
               alt=""
-              loading="lazy"
-              style={`width:${(realSize.w / ROOM_W) * 100}%;bottom:${(HANG / ROOM_H) * 100}%`}
+              frame={frameFor(p)}
+              sizes="(max-width: 900px) 40vw, 300px"
+              moulding={(MOULD / outerW) * 100}
+              mount={(MOUNT / outerW) * 100}
+              maxWidth={`${(outerW / ROOM_W) * 100}%`}
+              style={`bottom:${(HANG / ROOM_H) * 100}%`}
             />
             <span class="room-furniture" aria-hidden="true">
               <svg viewBox="0 0 1200 760" fill="currentColor">

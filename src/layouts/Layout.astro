@@ -129,6 +129,21 @@ const nav = [
           });
         });
 
+        // Videos: swap the poster for the YouTube player only when someone presses play
+        document.querySelectorAll<HTMLElement>('.video[data-video]').forEach((box) => {
+          const btn = box.querySelector<HTMLButtonElement>('.video-play');
+          if (!btn || box.dataset.ready) return;
+          box.dataset.ready = '1';
+          btn.addEventListener('click', () => {
+            const f = document.createElement('iframe');
+            f.src = `https://www.youtube-nocookie.com/embed/${box.dataset.video}?autoplay=1&rel=0&modestbranding=1`;
+            f.title = box.dataset.title ?? 'Video';
+            f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+            f.allowFullscreen = true;
+            box.replaceChildren(f);
+          });
+        });
+
         // Click-to-zoom view on painting pages
         const dialog = document.querySelector<HTMLDialogElement>('dialog.lightbox');
         const openers = document.querySelectorAll<HTMLElement>('[data-zoom]');

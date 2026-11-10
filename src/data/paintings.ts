@@ -20,6 +20,8 @@ export interface Painting {
   note?: string;
   availability?: string;
   featured?: boolean;
+  /** Picture frame: black, oak or gold. Leave out to use the collection default. */
+  frame?: 'black' | 'oak' | 'gold';
 }
 
 const list: Painting[] = [
@@ -114,4 +116,11 @@ export const paintings = list;
 
 export function details(p: Painting): string {
   return [p.medium, p.size, p.year].filter(Boolean).join(' · ');
+}
+
+/** Gold for the Glanmire Series, oak for other Irish paintings, black for African paintings */
+export function frameFor(p: Painting): 'black' | 'oak' | 'gold' {
+  if (p.frame) return p.frame;
+  if (p.series) return 'gold';
+  return p.collection === 'irish' ? 'oak' : 'black';
 }

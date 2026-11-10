@@ -2,14 +2,15 @@
 import { Image, getImage } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import PaintingCard from '../components/PaintingCard.astro';
-import { paintings, imageFor } from '../data/paintings';
+import Frame from '../components/Frame.astro';
+import Video from '../components/Video.astro';
+import { paintings, imageFor, frameFor } from '../data/paintings';
 import { collections, enquiryLink, type CollectionKey } from '../data/site';
 
 const hero = paintings.find((p) => p.slug === 'ladies-to-market')!;
 const heroImg = imageFor(hero.slug);
 const og = await getImage({ src: heroImg, width: 1200, format: 'jpg' });
 const selected = paintings.filter((p) => p.featured && p.slug !== hero.slug).slice(0, 9);
-const story = paintings.find((p) => p.slug === 'irish-cottage')!;
 const keys = Object.keys(collections) as CollectionKey[];
 const count = (k: CollectionKey) => paintings.filter((p) => p.collection === k).length;
 const numerals = ['I', 'II'];
@@ -28,19 +29,22 @@ const numerals = ['I', 'II'];
         <a class="caps link-arrow" href="/about-me/">My story <span>→</span></a>
       </div>
     </div>
-    <figure class="hero-art">
-      <a href={`/${hero.slug}/`} aria-label={`${hero.title}, view the painting`}>
-        <Image
+    <figure class="hero-art lit-wall">
+      <a class="hang" href={`/${hero.slug}/`} aria-label={`${hero.title}, view the painting`}>
+        <span class="picture-light" aria-hidden="true"></span>
+        <Frame
           src={heroImg}
           alt={hero.alt}
-          widths={[800, 1200, 1600, 2400]}
-          sizes="(max-width: 900px) 100vw, 60vw"
+          frame={frameFor(hero)}
+          widths={[640, 960, 1300, 1800]}
+          sizes="(max-width: 900px) 84vw, 46vw"
           loading="eager"
-          fetchpriority="high"
-          transition:name={`art-${hero.slug}`}
+          priority
+          maxHeight="min(62vh, 640px)"
+          transitionName={`art-${hero.slug}`}
         />
       </a>
-      <figcaption><em>{hero.title}</em> {collections[hero.collection].name}</figcaption>
+      <figcaption><em>{hero.title}</em> &nbsp; {collections[hero.collection].name}</figcaption>
     </figure>
   </section>
 
@@ -57,13 +61,12 @@ const numerals = ['I', 'II'];
     <div class="collections">
       {keys.map((k, i) => (
         <a class="collection" href={`/${collections[k].slug}/`} data-reveal style={`--d:${i * 140}ms`}>
-          <span class="collection-img">
-            <Image
+          <span class="collection-img lit-wall">
+            <Frame
               src={imageFor(collections[k].cover)}
               alt=""
-              widths={[640, 960, 1400]}
-              sizes="(max-width: 760px) 92vw, 600px"
-              loading="lazy"
+              frame={k === 'irish' ? 'gold' : 'black'}
+              sizes="(max-width: 760px) 70vw, 460px"
             />
           </span>
           <span class="collection-row">
@@ -92,11 +95,9 @@ const numerals = ['I', 'II'];
 
   <section class="band">
     <div class="wrap">
-      <figure data-reveal>
-        <a href={`/${story.slug}/`}>
-          <Image src={imageFor(story.slug)} alt={story.alt} widths={[480, 800, 1100]} sizes="(max-width: 860px) 80vw, 460px" loading="lazy" />
-        </a>
-        <figcaption>{story.title}{story.year && `, ${story.year}`}</figcaption>
+      <figure class="band-video" data-reveal>
+        <Video id="9_ftfnuBUdw" title="The Artist Next Door" />
+        <figcaption><em>The Artist Next Door</em> &nbsp; Ross in conversation · 9 min · Reality Inspiration, 2025</figcaption>
       </figure>
       <div class="band-text" data-reveal style="--d:140ms">
         <p class="eyebrow">My story</p>

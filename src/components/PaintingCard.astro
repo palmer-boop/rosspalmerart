@@ -1,6 +1,6 @@
 ---
-import { Image } from 'astro:assets';
-import { imageFor, details, type Painting } from '../data/paintings';
+import Frame from './Frame.astro';
+import { imageFor, details, frameFor, type Painting } from '../data/paintings';
 
 interface Props { painting: Painting; index?: number; number?: number; }
 const { painting: p, index = 0, number } = Astro.props;
@@ -9,13 +9,12 @@ const meta = details(p);
 ---
 <a class="card" href={`/${p.slug}/`} data-reveal style={`--d:${(index % 3) * 110}ms`}>
   <span class="card-art">
-    <Image
+    <Frame
       src={img}
       alt={p.alt}
-      widths={[360, 560, 800, 1100].filter((w) => w <= img.width).concat(img.width < 360 ? [img.width] : [])}
-      sizes="(max-width: 640px) 90vw, (max-width: 1000px) 45vw, 400px"
-      loading="lazy"
-      transition:name={`art-${p.slug}`}
+      frame={frameFor(p)}
+      sizes="(max-width: 640px) 80vw, (max-width: 1000px) 40vw, 340px"
+      transitionName={`art-${p.slug}`}
     />
   </span>
   <span class="card-text">

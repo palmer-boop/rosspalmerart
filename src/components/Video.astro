@@ -1,0 +1,16 @@
+---
+/*
+  YouTube video that loads only when someone presses play
+  (no YouTube cookies or scripts until then).
+*/
+interface Props { id: string; title: string; }
+const { id, title } = Astro.props;
+---
+<div class="video" data-video={id} data-title={title}>
+  <button type="button" class="video-play" aria-label={`Play video: ${title}`}>
+    <img src={`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`} alt="" loading="lazy" decoding="async" />
+    <span class="video-btn" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>
+    </span>
+  </button>
+</div>

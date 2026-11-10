@@ -1,7 +1,8 @@
 ---
-import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
-import { paintings, imageFor } from '../data/paintings';
+import Frame from '../components/Frame.astro';
+import Video from '../components/Video.astro';
+import { paintings, imageFor, frameFor } from '../data/paintings';
 import { collections, enquiryLink } from '../data/site';
 const art = paintings.find((p) => p.slug === 'cobh-cathedral-in-cork-county')!;
 ---
@@ -46,10 +47,18 @@ const art = paintings.find((p) => p.slug === 'cobh-cathedral-in-cork-county')!;
       </div>
       <figure data-reveal>
         <a href={`/${art.slug}/`}>
-          <Image src={imageFor(art.slug)} alt={art.alt} widths={[480, 800, 1100]} sizes="(max-width: 800px) 92vw, 480px" />
+          <Frame src={imageFor(art.slug)} alt={art.alt} frame={frameFor(art)} sizes="(max-width: 800px) 90vw, 480px" />
         </a>
         <figcaption>{art.title}{art.year && `, ${art.year}`}</figcaption>
       </figure>
     </div>
+    <section class="about-video" data-reveal>
+      <Video id="9_ftfnuBUdw" title="The Artist Next Door" />
+      <div class="text">
+        <p class="eyebrow">On film</p>
+        <h2 class="h-section">The Artist <em>Next Door</em></h2>
+        <p class="body">A short film about me and my painting, from Reality Inspiration, December 2025.</p>
+      </div>
+    </section>
   </div>
 </Layout>
