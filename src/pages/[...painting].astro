@@ -20,6 +20,18 @@ const prev = siblings[(at - 1 + siblings.length) % siblings.length];
 const next = siblings[(at + 1) % siblings.length];
 const more = [1, 2, 3].map((n) => siblings[(at + 1 + n) % siblings.length]).filter((x) => x.slug !== p.slug);
 
+// Real size in mm, matched to the photo's orientation, for the "In a room" view
+const nums = (p.size?.match(/\d+/g) ?? []).map(Number);
+const landscape = img.width >= img.height;
+const realSize =
+  nums.length >= 2
+    ? landscape
+      ? { w: Math.max(nums[0], nums[1]), h: Math.min(nums[0], nums[1]) }
+      : { w: Math.min(nums[0], nums[1]), h: Math.max(nums[0], nums[1]) }
+    : null;
+// The room view shows a 2.4 m wide, 1.7 m high stretch of wall above a 1.2 m sideboard
+const ROOM_W = 2400, ROOM_H = 1700, HANG = 960;
+
 const meta = details(p);
 const description = [`${p.title}, a painting by ${site.artist}.`, meta, p.note].filter(Boolean).join(' ');
 const jsonLd = {
@@ -45,30 +57,68 @@ const jsonLd = {
     <span aria-current="page">{p.title}</span>
   </nav>
 
-  <article class="wrap work">
-    <div class="work-art">
-      <div class="work-art-inner">
+  <section class="wall" aria-label="The painting">
+    <div class="wall-inner">
+      <div class="view" data-pane="wall">
         <button class="zoom" type="button" data-zoom aria-label={`Enlarge ${p.title}`}>
           <Image
             src={img}
             alt={p.alt}
-            widths={[640, 960, 1400]}
-            sizes="(max-width: 900px) 86vw, 640px"
+            widths={[640, 960, 1400, 2000].filter((w) => w <= img.width).concat(img.width < 640 ? [img.width] : [])}
+            sizes="(max-width: 900px) 90vw, 900px"
             loading="eager"
             fetchpriority="high"
             transition:name={`art-${p.slug}`}
           />
         </button>
-        <p class="zoom-hint">Select the painting to enlarge</p>
+      </div>
+
+      {realSize && (
+        <div class="view" data-pane="room" hidden>
+          <div class="room" role="img" aria-label={`${p.title} shown to scale, ${realSize.w} by ${realSize.h} mm, hanging above a 1.2 metre sideboard`}>
+            <span class="room-floor" aria-hidden="true"></span>
+            <img
+              class="room-art"
+              src={full.src}
+              alt=""
+              loading="lazy"
+              style={`width:${(realSize.w / ROOM_W) * 100}%;bottom:${(HANG / ROOM_H) * 100}%`}
+            />
+            <span class="room-furniture" aria-hidden="true">
+              <svg viewBox="0 0 1200 760" fill="currentColor">
+                <rect x="0" y="0" width="1200" height="26" />
+                <rect x="16" y="26" width="1168" height="584" opacity="0.72" />
+                <rect x="400" y="60" width="2" height="520" fill="#ebe7e0" />
+                <rect x="798" y="60" width="2" height="520" fill="#ebe7e0" />
+                <rect x="360" y="300" width="22" height="3" fill="#ebe7e0" />
+                <rect x="818" y="300" width="22" height="3" fill="#ebe7e0" />
+                <path d="M70 610h22l-14 150h-8zM1108 610h22l-0 150h-8z" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div class="wall-bar">
+        <span>Select the painting to enlarge</span>
+        {realSize && (
+          <div class="view-switch" role="group" aria-label="How to show the painting">
+            <button type="button" data-view="wall" aria-pressed="true">On the wall</button>
+            <button type="button" data-view="room" aria-pressed="false">In a room, to scale</button>
+          </div>
+        )}
       </div>
     </div>
+  </section>
 
-    <div class="work-info">
-      <div>
-        <p class="eyebrow">{p.series ?? c.name}</p>
-        <h1>{p.title}</h1>
-      </div>
+  <article class="wrap work-info">
+    <div>
+      <p class="eyebrow">{p.series ?? c.name}{p.year && ` · ${p.year}`}</p>
+      <h1>{p.title}</h1>
+      {p.note && <p class="note">{p.note}</p>}
+    </div>
 
+    <div class="work-side">
       {(p.medium || p.size || p.year || p.availability) && (
         <dl class="facts">
           {p.medium && (<><dt>Medium</dt><dd>{p.medium}</dd></>)}
@@ -77,9 +127,6 @@ const jsonLd = {
           {p.availability && (<><dt>Availability</dt><dd>{p.availability}</dd></>)}
         </dl>
       )}
-
-      {p.note && <p class="body">{p.note}</p>}
-
       <div class="actions">
         <a class="btn btn-solid" href={enquiryLink(`Enquiry: ${p.title}`)}>Enquire about this painting</a>
         <a class="btn" href={enquiryLink(`Commission enquiry (similar to ${p.title})`)}>Commission something similar</a>
@@ -89,19 +136,22 @@ const jsonLd = {
   </article>
 
   <div class="wrap">
-    <nav class="pager caps" aria-label="Previous and next painting">
-      <a class="link-arrow" href={`/${prev.slug}/`}>←&nbsp; {prev.title}</a>
-      <a class="link-arrow" href={`/${next.slug}/`}>{next.title} &nbsp;<span>→</span></a>
+    <nav class="pager" aria-label="Previous and next painting">
+      <a href={`/${prev.slug}/`}><small>← Previous</small><b>{prev.title}</b></a>
+      <a href={`/${next.slug}/`}><small>Next →</small><b>{next.title}</b></a>
     </nav>
   </div>
 
   <section class="wrap more">
     <div class="section-head">
-      <h2 class="h-section">More from {c.name}</h2>
-      <a class="caps link-arrow" href={`/${c.slug}/`}>View all {siblings.length} &nbsp;<span>→</span></a>
+      <div>
+        <p class="eyebrow">Also in {c.name}</p>
+        <h2 class="h-section">More paintings</h2>
+      </div>
+      <a class="caps link-arrow" href={`/${c.slug}/`}>View all {siblings.length} <span>→</span></a>
     </div>
-    <div class="grid">
-      {more.map((m, i) => <PaintingCard painting={m} index={i} />)}
+    <div class="salon">
+      {more.map((m, i) => <PaintingCard painting={m} index={i} number={i + 1} />)}
     </div>
   </section>
 

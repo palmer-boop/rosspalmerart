@@ -1,12 +1,15 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import '@fontsource/cormorant-garamond/latin-300.css';
+import '@fontsource/cormorant-garamond/latin-300-italic.css';
 import '@fontsource/cormorant-garamond/latin-400.css';
 import '@fontsource/cormorant-garamond/latin-500.css';
 import '@fontsource/cormorant-garamond/latin-400-italic.css';
+import '@fontsource/jost/latin-300.css';
 import '@fontsource/jost/latin-400.css';
 import '@fontsource/jost/latin-500.css';
 import '../styles.css';
-import { site, collections } from '../data/site';
+import { site, collections, enquiryLink } from '../data/site';
 
 interface Props {
   title?: string;
@@ -32,6 +35,7 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#f7f5f1" />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -50,7 +54,7 @@ const nav = [
     <a class="skip" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="wrap">
-        <a class="wordmark" href="/">{site.artist}</a>
+        <a class="wordmark" href="/" aria-label={`${site.name}, home`}><b>{site.artist}</b><small>Paintings · Cork</small></a>
         <nav class="site-nav" aria-label="Main">
           {nav.map((n) => (
             <a href={n.href} aria-current={current === n.key ? 'page' : undefined}>{n.label}</a>
@@ -65,15 +69,37 @@ const nav = [
 
     <footer class="site-footer">
       <div class="wrap">
-        <a class="wordmark" href="/">{site.artist}</a>
-        <span>{site.location}</span>
-        <span>© {new Date().getFullYear()} {site.name}</span>
+        <div class="foot-top">
+          <a class="wordmark" href="/" aria-label={`${site.name}, home`}><b>{site.artist}</b><small>Paintings of Ireland and Zimbabwe</small></a>
+          <div class="foot-col">
+            <p class="eyebrow">The work</p>
+            {nav.slice(0, 3).map((n) => <a href={n.href}>{n.label}</a>)}
+          </div>
+          <div class="foot-col">
+            <p class="eyebrow">Enquiries</p>
+            <a href={enquiryLink('Enquiry from rosspalmerart.com')}>{site.email}</a>
+            <span>{site.location}</span>
+          </div>
+        </div>
+        <div class="foot-bottom">
+          <span>© {new Date().getFullYear()} {site.name}</span>
+          <span>All paintings by {site.artist}</span>
+        </div>
       </div>
     </footer>
 
     <script>
+      let onScroll: (() => void) | undefined;
+
       function setup() {
         document.documentElement.classList.add('js');
+
+        // Hairline under the header once the page scrolls
+        const header = document.querySelector('.site-header');
+        if (onScroll) window.removeEventListener('scroll', onScroll);
+        onScroll = () => header?.classList.toggle('is-stuck', window.scrollY > 8);
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
 
         // Fade elements in as they scroll into view
         const items = document.querySelectorAll<HTMLElement>('[data-reveal]:not(.is-in)');
@@ -94,17 +120,26 @@ const nav = [
           items.forEach((el) => io.observe(el));
         }
 
+        // "On the wall" / "In a room" switch on painting pages
+        const switches = document.querySelectorAll<HTMLButtonElement>('[data-view]');
+        switches.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            switches.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+            document.querySelectorAll<HTMLElement>('.view').forEach((v) => (v.hidden = v.dataset.pane !== btn.dataset.view));
+          });
+        });
+
         // Click-to-zoom view on painting pages
         const dialog = document.querySelector<HTMLDialogElement>('dialog.lightbox');
-        const opener = document.querySelector<HTMLElement>('[data-zoom]');
-        if (dialog && opener && !dialog.dataset.ready) {
+        const openers = document.querySelectorAll<HTMLElement>('[data-zoom]');
+        if (dialog && openers.length && !dialog.dataset.ready) {
           dialog.dataset.ready = '1';
           const stage = dialog.querySelector<HTMLElement>('.lightbox-stage')!;
           const close = () => {
             dialog.classList.remove('is-zoomed');
             dialog.close();
           };
-          opener.addEventListener('click', () => dialog.showModal());
+          openers.forEach((o) => o.addEventListener('click', () => dialog.showModal()));
           dialog.querySelector('.lightbox-close')!.addEventListener('click', close);
           dialog.addEventListener('close', () => dialog.classList.remove('is-zoomed'));
           stage.addEventListener('click', (ev) => {

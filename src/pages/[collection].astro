@@ -18,18 +18,21 @@ const main = all.filter((p) => !p.series);
 const seriesNames = [...new Set(all.filter((p) => p.series).map((p) => p.series!))];
 const og = await getImage({ src: imageFor(c.cover), width: 1200, format: 'jpg' });
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+let n = 0;
 ---
 <Layout title={c.name} description={`${c.name} by Ross Palmer. ${c.blurb}`} image={og.src} current={key}>
   <div class="wrap">
     <header class="intro">
-      <p class="eyebrow">{all.length} paintings</p>
-      <h1>{c.name}</h1>
-      <p class="body" style="font-size:19px">{c.blurb}</p>
+      <div>
+        <p class="eyebrow">Collection · {all.length} paintings</p>
+        <h1>{c.name}</h1>
+      </div>
+      <p class="body">{c.blurb}</p>
     </header>
 
-    <section class="section">
-      <div class="grid">
-        {main.map((p, i) => <PaintingCard painting={p} index={i} />)}
+    <section style="padding-bottom:clamp(64px,8vw,120px)">
+      <div class="salon">
+        {main.map((p, i) => <PaintingCard painting={p} index={i} number={++n} />)}
       </div>
 
       {seriesNames.map((name) => (
@@ -38,8 +41,8 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
             <p class="eyebrow">Series</p>
             <h2 class="h-section">{name}</h2>
           </div>
-          <div class="grid">
-            {all.filter((p) => p.series === name).map((p, i) => <PaintingCard painting={p} index={i} />)}
+          <div class="salon">
+            {all.filter((p) => p.series === name).map((p, i) => <PaintingCard painting={p} index={i} number={++n} />)}
           </div>
         </>
       ))}

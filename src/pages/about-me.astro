@@ -8,8 +8,10 @@ const art = paintings.find((p) => p.slug === 'cobh-cathedral-in-cork-county')!;
 <Layout title="My Story" description="Ross Palmer started painting in 2017, recording memories of a life lived in Zimbabwe and Ireland." current="about">
   <div class="wrap">
     <header class="intro">
-      <p class="eyebrow">My story</p>
-      <h1>A journey through life, in paint.</h1>
+      <div>
+        <p class="eyebrow">My story</p>
+        <h1>A journey through life, <em>in paint.</em></h1>
+      </div>
     </header>
     <div class="split">
       <div class="prose">
@@ -38,7 +40,7 @@ const art = paintings.find((p) => p.slug === 'cobh-cathedral-in-cork-county')!;
         </p>
         <p style="display:flex;flex-wrap:wrap;gap:12px;margin-top:10px">
           <a class="btn btn-solid" href={`/${collections.irish.slug}/`}>Irish Art</a>
-          <a class="btn btn-solid" href={`/${collections.african.slug}/`}>African Art</a>
+          <a class="btn" href={`/${collections.african.slug}/`}>African Art</a>
           <a class="btn" href={enquiryLink('Commission enquiry')}>Commission a painting</a>
         </p>
       </div>
@@ -46,7 +48,7 @@ const art = paintings.find((p) => p.slug === 'cobh-cathedral-in-cork-county')!;
         <a href={`/${art.slug}/`}>
           <Image src={imageFor(art.slug)} alt={art.alt} widths={[480, 800, 1100]} sizes="(max-width: 800px) 92vw, 480px" />
         </a>
-        <figcaption>{art.title}</figcaption>
+        <figcaption>{art.title}{art.year && `, ${art.year}`}</figcaption>
       </figure>
     </div>
   </div>

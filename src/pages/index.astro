@@ -8,103 +8,118 @@ import { collections, enquiryLink, type CollectionKey } from '../data/site';
 const hero = paintings.find((p) => p.slug === 'ladies-to-market')!;
 const heroImg = imageFor(hero.slug);
 const og = await getImage({ src: heroImg, width: 1200, format: 'jpg' });
-const selected = paintings.filter((p) => p.featured && p.slug !== hero.slug).slice(0, 6);
+const selected = paintings.filter((p) => p.featured && p.slug !== hero.slug).slice(0, 9);
+const story = paintings.find((p) => p.slug === 'irish-cottage')!;
 const keys = Object.keys(collections) as CollectionKey[];
 const count = (k: CollectionKey) => paintings.filter((p) => p.collection === k).length;
+const numerals = ['I', 'II'];
 ---
 <Layout image={og.src}>
-  <section class="wrap hero">
+  <section class="hero">
     <div class="hero-text">
       <p class="eyebrow">Paintings of Ireland and Zimbabwe</p>
-      <h1>Memories of two homes, recorded in paint.</h1>
+      <h1>Memories of two homes, <em>recorded in paint.</em></h1>
       <p class="body">
         My journey through art has been to record memories from a life lived in Zimbabwe and Ireland, mostly in
         acrylics on canvas, with a few watercolours.
       </p>
-      <a class="btn btn-solid" href="#works">View the paintings</a>
+      <div class="hero-actions">
+        <a class="btn btn-solid" href="#works">View the paintings</a>
+        <a class="caps link-arrow" href="/about-me/">My story <span>→</span></a>
+      </div>
     </div>
     <figure class="hero-art">
-      <a href={`/${hero.slug}/`}>
+      <a href={`/${hero.slug}/`} aria-label={`${hero.title}, view the painting`}>
         <Image
           src={heroImg}
           alt={hero.alt}
-          widths={[640, 960, 1400]}
-          sizes="(max-width: 900px) 92vw, 700px"
+          widths={[800, 1200, 1600, 2400]}
+          sizes="(max-width: 900px) 100vw, 60vw"
           loading="eager"
           fetchpriority="high"
           transition:name={`art-${hero.slug}`}
         />
       </a>
-      <figcaption><em>{hero.title}</em> &nbsp;·&nbsp; {collections[hero.collection].name}</figcaption>
+      <figcaption><em>{hero.title}</em> {collections[hero.collection].name}</figcaption>
     </figure>
   </section>
 
-  <section class="wrap section">
-    <div class="section-head" data-reveal>
-      <h2 class="h-section">Two collections</h2>
-      <p class="muted" style="font-size:15px">{paintings.length} paintings and counting</p>
-    </div>
-    <div class="tiles">
+  <section class="wrap statement" data-reveal>
+    <p class="eyebrow">Since 2017</p>
+    <p class="big">
+      The people, villages and wildlife of <em>Zimbabwe</em>, and the coast, churches and bridges of{' '}
+      <em>Cork</em>: the two places I have called home.
+    </p>
+    <span class="rule" aria-hidden="true"></span>
+  </section>
+
+  <section class="wrap section" style="padding-top:0">
+    <div class="collections">
       {keys.map((k, i) => (
-        <a class="tile" href={`/${collections[k].slug}/`} data-reveal style={`--d:${i * 120}ms`}>
-          <span class="tile-img">
+        <a class="collection" href={`/${collections[k].slug}/`} data-reveal style={`--d:${i * 140}ms`}>
+          <span class="collection-img">
             <Image
               src={imageFor(collections[k].cover)}
               alt=""
-              widths={[640, 960, 1280]}
+              widths={[640, 960, 1400]}
               sizes="(max-width: 760px) 92vw, 600px"
               loading="lazy"
             />
           </span>
-          <span class="tile-row">
-            <span class="tile-name">{collections[k].name}</span>
-            <span class="caps muted">{count(k)} works &nbsp;→</span>
+          <span class="collection-row">
+            <span class="collection-num">{numerals[i]}</span>
+            <span class="collection-name">{collections[k].name}</span>
+            <span class="caps">{count(k)} works</span>
           </span>
-          <span class="muted" style="font-size:16px">{collections[k].blurb}</span>
+          <p>{collections[k].blurb}</p>
         </a>
       ))}
     </div>
   </section>
 
-  <section class="wrap section" id="works" style="scroll-margin-top:90px">
+  <section class="wrap section" id="works" style="scroll-margin-top:90px;padding-top:0">
     <div class="section-head" data-reveal>
-      <h2 class="h-section">Selected works</h2>
+      <div>
+        <p class="eyebrow">Selected works</p>
+        <h2 class="h-section">From the studio</h2>
+      </div>
+      <a class="caps link-arrow" href={`/${collections.irish.slug}/`}>All paintings <span>→</span></a>
     </div>
-    <div class="grid">
-      {selected.map((p, i) => <PaintingCard painting={p} index={i} />)}
+    <div class="salon">
+      {selected.map((p, i) => <PaintingCard painting={p} index={i} number={i + 1} />)}
     </div>
   </section>
 
   <section class="band">
     <div class="wrap">
-      <div class="band-quote" data-reveal>
+      <figure data-reveal>
+        <a href={`/${story.slug}/`}>
+          <Image src={imageFor(story.slug)} alt={story.alt} widths={[480, 800, 1100]} sizes="(max-width: 860px) 80vw, 460px" loading="lazy" />
+        </a>
+        <figcaption>{story.title}{story.year && `, ${story.year}`}</figcaption>
+      </figure>
+      <div class="band-text" data-reveal style="--d:140ms">
         <p class="eyebrow">My story</p>
         <blockquote>
           “The paintings are a series of memories of the journey through life, both in Zimbabwe and Ireland.”
         </blockquote>
-      </div>
-      <div class="band-text" data-reveal style="--d:120ms">
         <p class="body">
           I started painting in 2017 when faced with retirement from the planning and development sector. Having
-          been brought up in Zimbabwe, I paint its people, buildings, landscapes and wildlife.
+          been brought up in Zimbabwe, I paint its people, buildings, landscapes and wildlife. Since moving to
+          Ireland in 2000, I have tried to record my home town of Glanmire in Cork.
         </p>
-        <p class="body">
-          Since moving to Ireland in 2000, my art has been influenced by its landscapes, people and heritage, and
-          I have tried to record my home town of Glanmire in Cork.
-        </p>
-        <a class="caps link-arrow" href="/about-me/">Read my story &nbsp;<span>→</span></a>
+        <a class="caps link-arrow" href="/about-me/">Read my story <span>→</span></a>
       </div>
     </div>
   </section>
 
   <section class="wrap commission" data-reveal>
-    <div>
-      <h2 class="h-section">Commission a painting</h2>
-      <p class="body">
-        I have been asked to prepare a number of private paintings for clients, reflecting their own requests. If
-        you have a home, a view or a moment you would like painted, get in touch.
-      </p>
-    </div>
+    <p class="eyebrow">Commissions</p>
+    <h2>A home, a view or a moment, <em>painted for you.</em></h2>
+    <p>
+      I have been asked to prepare a number of private paintings for clients, reflecting their own requests. If
+      there is a place you would like painted, get in touch.
+    </p>
     <a class="btn" href={enquiryLink('Commission enquiry')}>Enquire about a commission</a>
   </section>
 </Layout>
